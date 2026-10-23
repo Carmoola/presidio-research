@@ -1,0 +1,184 @@
+# Recognizer registry for notebooks/5_Evaluate_Custom_Presidio_Analyzer.ipynb.
+# UK-focused: no US-specific recognizers are loaded.
+#
+# Load with:
+#   RecognizerRegistryProvider(conf_file="recognizers.yaml", nlp_engine=nlp_engine).create_recognizer_registry()
+#
+# Tuned on data/generated_size_1500_date_October_21_2026.json (presidio-analyzer 2.2.364,
+# OpenMed-PII-SuperClinical-Large-434M-v1): binary F2 0.907, type-aware F2 0.880.
+# The notebook's PostProcessingAnalyzerEngine refers to some recognizers below by name
+# (PRIORITY_RECOGNIZERS); keep the names in sync when renaming.
+
+supported_languages:
+  - en
+
+# IGNORECASE | MULTILINE | DOTALL. This overrides the flags of every pattern recognizer,
+# so case-sensitive patterns below use a scoped (?-i:...) group.
+global_regex_flags: 26
+
+recognizers:
+  # ── NER model ──────────────────────────────────────────────────────────────
+  - name: HuggingFaceNerRecognizer
+    type: predefined
+    supported_languages:
+      - en
+    model_name: OpenMed/OpenMed-PII-SuperClinical-Large-434M-v1
+    aggregation_strategy: first
+    # Model labels -> Presidio entities. Address parts keep their own labels;
+    # PostProcessingAnalyzerEngine folds them into STREET_ADDRESS or GPE.
+    label_mapping:
+      first_name: FIRST_NAME
+      last_name: LAST_NAME
+      age: AGE
+      gender: GENDER
+      date_of_birth: DATE_TIME
+      blood_type: BLOOD_TYPE
+      occupation: TITLE # the dataset annotates job titles as TITLE
+      education_level: EDUCATION_LEVEL
+      employment_status: EMPLOYMENT_STATUS
+      language: NRP # 'English', 'Spanish' are annotated as NRP
+      race_ethnicity: NRP
+      sexuality: SEXUALITY
+      political_view: POLITICAL_VIEW
+      religious_belief: RELIGIOUS_BELIEF
+      biometric_identifier: BIOMETRIC_IDENTIFIER
+      pin: ID
+      account_number: ACCOUNT_NUMBER
+      customer_id: ID
+      employee_id: ID
+      unique_id: ID
+      bank_routing_number: BANK_ROUTING_NUMBER # UK sort code
+      swift_bic: SWIFT_CODE
+      certificate_license_number: PROFESSIONAL_LICENSE
+      medical_record_number: MEDICAL_LICENSE
+      health_plan_beneficiary_number: ID
+      credit_debit_card: CREDIT_CARD
+      cvv: CVV
+      ssn: UK_NINO
+      tax_id: ID
+      license_plate: LICENSE_PLATE
+      vehicle_identifier: ID
+      mac_address: ID
+      device_identifier: ID
+      password: PASSWORD
+      user_name: USER_NAME
+      email: EMAIL_ADDRESS
+      phone_number: PHONE_NUMBER
+      fax_number: PHONE_NUMBER
+      url: DOMAIN_NAME # website URLs are annotated as DOMAIN_NAME
+      city: CITY
+      country: COUNTRY
+      county: COUNTY
+      state: STATE
+      street_address: STREET_ADDRESS
+      coordinate: COORDINATE
+      postcode: ZIP_CODE
+      ipv4: IP_ADDRESS
+      ipv6: IP_ADDRESS
+      date: DATE_TIME
+      date_time: DATE_TIME
+      time: DATE_TIME
+      company_name: COMPANY
+
+  # ── Predefined pattern recognizers ─────────────────────────────────────────
+  - name: CreditCardRecognizer
+    type: predefined
+    supported_languages:
+      - language: en
+        context: [credit, card, visa, mastercard, cc, amex, discover, jcb, diners, maestro, instapayment]
+  - name: DateRecognizer
+    type: predefined
+  - name: EmailRecognizer
+    type: predefined
+  - name: IbanRecognizer
+    type: predefined
+  - name: IpRecognizer
+    type: predefined
+  - name: MacAddressRecognizer
+    type: predefined
+  - name: PhoneRecognizer
+    type: predefined
+    supported_regions: [GB] # other international formats: GenericPhoneRecognizer
+  # Finds all 35 DVLA licence numbers in the dataset and validates the checksum
+  - name: UkDrivingLicenceRecognizer
+    type: predefined
+    country_code: uk
+
+  # ── Custom recognizers ─────────────────────────────────────────────────────
+  # Case-sensitive so 'ms' in prose is not a title
+  - name: TitlesRecognizer
+    supported_entity: TITLE
+    patterns:
+      - name: honorific
+        regex: '(?-i:(?<!\w)(?:Mr\.|Mrs\.|Ms\.|Miss|Dr\.|Prof\.)(?!\w))'
+        score: 1.0
+
+  - name: YearsRecognizer
+    supported_entity: DATE_TIME
+    patterns:
+      - name: YEAR
+        regex: '\b(19|20)\d{2}\b'
+        score: 0.1
+    context: [year, at, date, in, "on"] # quoted: YAML reads a bare on as true
+
+  - name: WeekdayRecognizer
+    supported_entity: DATE_TIME
+    patterns:
+      - name: weekday
+        regex: '(?-i:\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b)'
+        score: 0.6
+
+  # International formats that PhoneRecognizer's region list misses; only with phone context
+  - name: GenericPhoneRecognizer
+    supported_entity: PHONE_NUMBER
+    patterns:
+      - name: digit groups
+        regex: '(?<![\w+])(?:\+\d{1,3}[ .\-]?)?(?:\(\d{1,5}\)[ .\-]?)?\d{2,5}(?:[ .\-]\d{2,5}){0,4}(?:x\d{1,5})?(?!\w)'
+        score: 0.05
+    context: [phone, mobile, desk, fax, office, call, reach, tel, number, answering]
+
+  # The predefined UkPostcodeRecognizer scores 0.1 and needs context, so it never fires here
+  - name: UkPostcodePatternRecognizer
+    supported_entity: ZIP_CODE
+    patterns:
+      - name: UK postcode
+        regex: '(?-i:\b[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}\b)'
+        score: 0.5
+
+  # Covers 'ZZ 94 25 43 T'-style numbers (annotated as US_SSN) that the predefined
+  # UkNinoRecognizer rejects
+  - name: UkNinoPatternRecognizer
+    supported_entity: UK_NINO
+    patterns:
+      - name: NINO (spaced pairs)
+        regex: '\b[A-Z]{2} ?\d{2} ?\d{2} ?\d{2} ?[A-DT]\b'
+        score: 0.6
+      - name: NINO (6 digit block)
+        regex: '\b[A-Z]{2} ?\d{6} ?[A-DT]\b'
+        score: 0.6
+    context: [nino, ni, national, insurance, ssn, social, security]
+
+  # Bare digit runs below: only reported when context lifts them above the threshold.
+  # The predefined UkPassportRecognizer expects the 'AB1234567' format.
+  - name: UkPassportNumberRecognizer
+    supported_entity: UK_PASSPORT
+    patterns:
+      - name: 9 digits
+        regex: '\b\d{9}\b'
+        score: 0.05
+    context: [passport]
+
+  # Card numbers in the dataset are synthetic and fail CreditCardRecognizer's Luhn check
+  - name: CardNumberContextRecognizer
+    supported_entity: CREDIT_CARD
+    patterns:
+      - name: 12-19 digits
+        regex: '\b\d{12,19}\b'
+        score: 0.05
+    context: [card, credit, debit, charge]
+
+  # ── Disabled after evaluation ──────────────────────────────────────────────
+  # The HF model replaces spaCy NER
+  - name: SpacyRecognizer
+    type: predefined
+    enabled: false
