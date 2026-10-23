@@ -26,6 +26,12 @@ class RecordGenerator(SpanGenerator):
     the first would be taken from the record and the next ones
     from regular Faker providers.
 
+    With ``fill_from_other_records=True``, entity types that exist as a record column
+    are never sampled from Faker providers: if the sampled record has no value for it
+    (empty, or already used in this sentence), the value is drawn from another record.
+    Using a value also uses up every other column of the sampled record holding the same
+    value (e.g. aliases such as name/person), so one sentence does not repeat it.
+
     :example:
     >>>from faker import Faker
     >>>from presidio_evaluator.data_generator.faker_extensions import RecordGenerator
@@ -69,14 +75,27 @@ class RecordGenerator(SpanGenerator):
 
     """
 
-    def __init__(self, records: list[dict] | None = None) -> None:
+    def __init__(
+        self,
+        records: list[dict] | None = None,
+        fill_from_other_records: bool = False,
+    ) -> None:
         super().__init__()
         self.records = records
+        self.fill_from_other_records = fill_from_other_records
 
         if self.records:
             for record in self.records:
                 if not isinstance(record, dict):
                     raise TypeError("Each element should be of type Dict")
+
+        # Non-empty values per column, to fill entities missing from the sampled record
+        self._values_by_column: dict[str, list] = {}
+        if self.fill_from_other_records and self.records:
+            for record in self.records:
+                for column, value in record.items():
+                    if value:
+                        self._values_by_column.setdefault(column, []).append(value)
 
         # Use an internal provider to sample from the input elements
         self.dynamic_record_provider = DynamicProvider(
@@ -95,13 +114,24 @@ class RecordGenerator(SpanGenerator):
         record = self._get_random_record()
 
         results: list[Span] = []
+        used_values: set = set()
         for match in matches:
             formatter = match.group()[2:-2]
             stripped = formatter.strip()
 
-            value = str(self.format(formatter=stripped, record=record))
+            raw_value = self.format(
+                formatter=stripped,
+                record=record,
+                used_values=used_values,
+            )
+            used_values.add(raw_value)
+            value = str(raw_value)
             if stripped in record:
                 del record[stripped]  # Remove in order not to sample twice
+            if self.fill_from_other_records:
+                # Also use up aliases holding the same value (e.g. name/person)
+                for column in [col for col, val in record.items() if val == raw_value]:
+                    del record[column]
 
             results.append(
                 Span(
@@ -117,12 +147,18 @@ class RecordGenerator(SpanGenerator):
     def format(self, formatter: str, *args: Any, **kwargs: Any) -> str:
         """Fill in fake data. If the input record has the requested entity, return its value."""
         record = kwargs.get("record")
-        if not record or not record.get(
-            formatter,
-        ):  # type not in record, go to default faker
-            return super().format(formatter)
+        if record and record.get(formatter):
+            return record[formatter]
 
-        return record[formatter]
+        if self.fill_from_other_records and self._values_by_column.get(formatter):
+            # Prefer values not used yet in this sentence, e.g. a second person
+            used_values = kwargs.get("used_values") or set()
+            values = self._values_by_column[formatter]
+            unused = [value for value in values if value not in used_values]
+            return self.random.choice(unused or values)
+
+        # type not in records, go to default faker
+        return super().format(formatter)
 
 
 class SentenceFaker(Faker):
@@ -130,6 +166,7 @@ class SentenceFaker(Faker):
         self,
         lower_case_ratio: float = 0.05,
         records: pd.DataFrame | list[dict] | None = None,
+        fill_from_other_records: bool = False,
         **faker_kwargs,
     ) -> None:
         """
@@ -137,6 +174,8 @@ class SentenceFaker(Faker):
         e.g. "My name is {{first_name}} and returning span information in addition to fake text."
         :param lower_case_ratio: Percentage of names that should start with lower case
         :param records: fake PII values to draw from, in order to maintain semantic relationship between elements.
+        :param fill_from_other_records: Draw entities found in the records only from the records,
+        never from Faker providers (see RecordGenerator)
         :param faker_kwargs: Arguments for the parent class (faker.Faker)
 
         :example:
@@ -154,7 +193,10 @@ class SentenceFaker(Faker):
         if records is not None:
             if isinstance(records, pd.DataFrame):
                 records = records.to_dict(orient="records")
-            generator = RecordGenerator(records=records)
+            generator = RecordGenerator(
+                records=records,
+                fill_from_other_records=fill_from_other_records,
+            )
         else:
             generator = SpanGenerator()
 

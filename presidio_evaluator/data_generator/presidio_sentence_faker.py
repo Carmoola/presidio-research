@@ -56,6 +56,9 @@ class PresidioSentenceFaker:
     :param: provider_aliases: A dictionary mapping provider names to the given entity types.
     Useful if the templates contain a different name for the entity type than the one supported by Faker or PresidioSentenceFaker.
     :param: random_seed: A seed to make results reproducible between runs
+    :param: fill_from_other_records: If True, entity types that are columns of base_records are always drawn from
+    base_records: when the sampled record has no value for one (empty, or already used in the sentence),
+    it is taken from another record instead of a Faker provider
     """
 
     PROVIDER_ALIASES = [
@@ -119,6 +122,7 @@ class PresidioSentenceFaker:
         entity_type_mapping: dict[str, str] | None = None,
         provider_aliases: list[tuple[str, str]] | None = None,
         random_seed: SeedType | None = None,
+        fill_from_other_records: bool = False,
     ) -> None:
         self._sentence_templates = sentence_templates
         if not self._sentence_templates:
@@ -136,6 +140,7 @@ class PresidioSentenceFaker:
             records=base_records,
             locale=locale,
             lower_case_ratio=lower_case_ratio,
+            fill_from_other_records=fill_from_other_records,
         )
         for entity_provider in entity_providers:
             self._sentence_faker.add_provider(entity_provider)

@@ -88,3 +88,35 @@ def test_template_contains_multiple_of_same_entity(add_spans):
         assert res.full_text.count("a_name") == 1
     else:
         assert res.count("a_name") == 1
+
+
+def test_fill_from_other_records_never_uses_faker_for_record_columns():
+    records = [
+        {"name": "a_name", "email": None},
+        {"name": "b_name", "email": "b@b"},
+    ]
+    generator = RecordGenerator(records=records, fill_from_other_records=True)
+    Faker.seed(42)
+    faker = Faker(generator=generator)
+
+    for _ in range(20):
+        res = faker.parse("{{name}} or {{name}} at {{email}}", add_spans=True)
+        values = {span.entity_type: [] for span in res.spans}
+        for span in res.spans:
+            values[span.entity_type].append(span.entity_value)
+        assert values["email"] == ["b@b"]  # empty email filled from the other record
+        assert sorted(values["name"]) == ["a_name", "b_name"]
+
+
+def test_fill_from_other_records_uses_up_aliases_of_a_value():
+    records = [
+        {"name": "a_name", "person": "a_name"},
+        {"name": "b_name", "person": "b_name"},
+    ]
+    generator = RecordGenerator(records=records, fill_from_other_records=True)
+    Faker.seed(42)
+    faker = Faker(generator=generator)
+
+    for _ in range(20):
+        res = faker.parse("{{name}} and {{person}}", add_spans=True)
+        assert {span.entity_value for span in res.spans} == {"a_name", "b_name"}
