@@ -1,0 +1,75 @@
+Hi, my name is {{person}} and I'd like to check the status of my car finance application
+Hello, I applied for finance yesterday, the name on the application is {{first_name}} {{last_name}}
+Hi there, it's {{first_name}}, I'm just chasing up my application for the Ford Focus
+I applied for a loan for a car at {{organization}}, can you tell me if it's been approved? My name is {{person}}
+Can you confirm the email you used for the application? It's {{email}}
+Thanks {{first_name}}, I can see your application. Can you confirm your date of birth please?
+My date of birth is {{date_of_birth}}
+DOB {{date_of_birth}}, postcode {{uk_postcode}}
+To pass security, could you give me your full name, date of birth and postcode? Sure, {{person}}, {{date_of_birth}}, {{uk_postcode}}
+For security, can you confirm the first line of your address and your postcode? It's {{uk_address}}
+Thanks, I've verified your account. How can I help today, {{first_name}}?
+I've moved house, my new address is {{uk_address}}
+Please update my address to {{uk_address}}, I moved in on {{date}}
+I'd like to change my address on the agreement, it's now {{uk_address}}
+Can you update my phone number? The new one is {{uk_phone_number}}
+My mobile number has changed to {{uk_phone_number}}, please update it on my account
+I've got a new email address, can you change it to {{email}}?
+Please send the settlement figure to {{email}}
+Could you email a copy of my finance agreement to {{email}}?
+Can you call me back on {{uk_phone_number}}? I'm free after 5pm
+Please ring me on {{uk_phone_number}} on {{day_of_week}} morning
+I tried to call you earlier from {{uk_phone_number}} but nobody answered
+Hi {{first_name}}, this is {{person}} from the customer support team, how can I help?
+Thanks for waiting {{first_name}}, I've had a look at your account
+Good morning, you're speaking to {{first_name}}. Can I take your name please? It's {{person}}
+I'd like to pay off my car finance early, can I get a settlement figure? My name is {{person}}
+What's my settlement figure if I pay it off on {{date}}?
+I want to make a one-off payment with my card, the number is {{credit_card_number}}
+Can I pay this month's instalment with my debit card? It's {{credit_card_number}}
+My direct debit failed, can I pay with card {{credit_card_number}} instead?
+The direct debit will now come from my new account, IBAN {{iban}}
+Can you change the account for my monthly payments? My new IBAN is {{iban}}
+My monthly payment is due on {{date}}, can I move it to the end of the month?
+I'm going to be late with my payment this month, I get paid on {{day_of_week}}
+I lost my job at {{organization}} last week, are there any payment options?
+I've started a new job at {{organization}} as a {{job}}, do you need my updated income?
+For the affordability check, I work as a {{job}} at {{organization}}
+My employer is {{organization}}, I've been there for {{age}} years
+Can you send me my driving licence details on file? The number should be {{uk_driving_licence}}
+My driving licence number is {{uk_driving_licence}}
+I've uploaded a photo of my driving licence, the number is {{uk_driving_licence}}
+The licence number on the application is wrong, it should be {{uk_driving_licence}}
+I renewed my driving licence, the new number is {{uk_driving_licence}}, issued on {{date}}
+The car will be delivered to {{uk_address}} on {{day_of_week}}
+Can the car be delivered to my work address instead? It's {{uk_address}}
+Please arrange collection of the car from {{uk_address}}
+The dealer {{organization}} in {{city}} said they're waiting for your payout
+I'm buying the car from a dealership in {{city}}, it's called {{organization}}
+I live in {{city}} and the car is at a dealer about an hour away
+Is it possible to add my partner {{person}} as a named driver?
+My husband {{first_name}} {{last_name}} would like to take over the agreement
+My wife {{person}} is calling on my behalf, she has my permission
+I'm calling on behalf of my son {{person}}, his date of birth is {{date_of_birth}}
+Can I speak to someone about the account of {{person}}? I'm their power of attorney
+Hi, I'm {{person}}, my address is {{uk_address}} and you can call me on {{uk_phone_number}}
+Name: {{person}}, Address: {{uk_address}}, Phone: {{uk_phone_number}}, Email: {{email}}
+Full name: {{first_name}} {{last_name}}, DOB: {{date_of_birth}}, Driving licence: {{uk_driving_licence}}
+Customer {{person}} ({{email}}) asked for a call back on {{uk_phone_number}}
+{{first_name}} reported that the car was damaged before delivery
+{{person}} wants to make a complaint about the condition of the vehicle
+I'd like to raise a complaint, my name is {{person}} and my postcode is {{uk_postcode}}
+Thanks {{first_name}}, I've raised a complaint and you'll hear back within 8 weeks
+Can you send the documents in the post to {{uk_address}}?
+I never received my welcome pack, can you check you have the right address? It's {{uk_address}}
+I haven't had the confirmation email, is it going to {{email}}?
+My login isn't working, my username is {{email}}
+I've forgotten my password, can you send a reset link to {{email}}?
+Please don't call me on {{uk_phone_number}} anymore, email me at {{email}} instead
+I want to cancel my agreement within the 14 day cooling-off period, I signed it on {{date}}
+I'd like to voluntarily terminate my agreement, my name is {{person}}
+I'm selling the car, can you give me a settlement figure valid until {{date}}?
+Can I part exchange the car at {{organization}} and settle the finance?
+Thanks for your help today {{first_name}}, have a good day!
+No problem {{first_name}}, is there anything else I can help with?
+Speak soon, {{first_name}}. You can reach us on {{uk_phone_number}} if anything changes
