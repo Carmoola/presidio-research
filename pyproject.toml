@@ -33,6 +33,9 @@ dev = [
     "matplotlib>=3.4.3",
     "ipykernel>=7.1.0",
 ]
+snowflake = [
+    "snowflake-connector-python>=3.12",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -68,4 +71,5 @@ dev = [
     "en-core-web-lg",
     "en-core-web-sm",
     "pre-commit>=4.5.1",
+    "torch>=2.14.1",
 ]
